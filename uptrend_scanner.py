@@ -2371,6 +2371,8 @@ class UptrendScanner:
                 output_path: Path to save the Excel file
                 workbook_type: Type identifier for logging ('all_scanned', 'early', 'established')
             """
+            from openpyxl.styles import Font
+
             if not stocks:
                 logger.info(f"No stocks to export for {workbook_type}")
                 return
@@ -2382,10 +2384,36 @@ class UptrendScanner:
             all_df = pd.DataFrame(flat_data)
             all_df = all_df.sort_values('score', ascending=False).reset_index(drop=True)
 
+            # Define velocity colors
+            velocity_positive_color = "5F9936"  # Green for positive velocity
+            velocity_negative_color = "BA2020"  # Red for negative velocity
+
+            def apply_velocity_formatting(worksheet, df):
+                """Apply conditional font color to velocity column based on value."""
+                # Find the velocity column index (1-based for openpyxl)
+                columns = list(df.columns)
+                if 'velocity' not in columns:
+                    return
+
+                velocity_col_idx = columns.index('velocity') + 1  # 1-based index
+
+                # Apply formatting to each data row (skip header row 1)
+                for row_idx in range(2, len(df) + 2):  # Start at row 2, go to len+1
+                    cell = worksheet.cell(row=row_idx, column=velocity_col_idx)
+                    try:
+                        velocity_value = float(cell.value) if cell.value is not None else 0
+                        if velocity_value > 0:
+                            cell.font = Font(color=velocity_positive_color)
+                        elif velocity_value < 0:
+                            cell.font = Font(color=velocity_negative_color)
+                    except (ValueError, TypeError):
+                        pass  # Skip if value can't be converted to float
+
             # Create Excel writer
             with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
                 # Tab 1: "all" - All stocks sorted by score
                 all_df.to_excel(writer, sheet_name='all', index=False)
+                apply_velocity_formatting(writer.sheets['all'], all_df)
                 logger.debug(f"Created 'all' tab with {len(all_df)} stocks")
 
                 # Tab 2: "top20_per_sector" - Top 20 (or all) from each sector
@@ -2400,6 +2428,7 @@ class UptrendScanner:
                     # Sort by sector first, then by score within sector
                     top20_df = top20_df.sort_values(['sector', 'score'], ascending=[True, False]).reset_index(drop=True)
                     top20_df.to_excel(writer, sheet_name='top20_per_sector', index=False)
+                    apply_velocity_formatting(writer.sheets['top20_per_sector'], top20_df)
                     logger.debug(f"Created 'top20_per_sector' tab with {len(top20_df)} stocks")
 
                 # Tabs 3-13: One tab per GICS sector
@@ -2409,6 +2438,7 @@ class UptrendScanner:
                         # Excel sheet names have max 31 chars, truncate if needed
                         sheet_name = sector[:31] if len(sector) > 31 else sector
                         sector_df.to_excel(writer, sheet_name=sheet_name, index=False)
+                        apply_velocity_formatting(writer.sheets[sheet_name], sector_df)
                         logger.debug(f"Created '{sheet_name}' tab with {len(sector_df)} stocks")
 
             logger.info(f"Saved {workbook_type} Excel workbook to {output_path}")
@@ -2644,7 +2674,7 @@ class UptrendScanner:
         ax2.bar(x_positions, df['volume'].values, color=colors, alpha=0.65, width=0.8)
 
         # Volume MA50 on left axis
-        vol_line = ax2.plot(x_positions, df['volume_ma_50'].values, label='Volume MA (50)', color='purple', linewidth=1, alpha=0.8)
+        vol_line = ax2.plot(x_positions, df['volume_ma_50'].values, label='Volume MA (50)', color='purple', linewidth=2, alpha=0.8)
         ax2.set_ylabel('Volume', fontsize=10)
         ax2.grid(True, alpha=0.6)
         ax2.tick_params(axis='x', which='major', direction='in', length=8)
