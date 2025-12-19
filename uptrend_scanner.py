@@ -561,9 +561,13 @@ logger.setLevel(logging.INFO)
 # Create formatter
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
+# Track initial log file for cleanup when strategy-specific log is created
+_initial_log_filename = None
+
 # File handler with timestamp (create new log file for each run)
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 log_filename = f'./output/logs/scan_{timestamp}.log'
+_initial_log_filename = log_filename  # Track for later cleanup
 file_handler = logging.FileHandler(log_filename, mode='w')
 file_handler.setLevel(logging.INFO)
 file_handler.setFormatter(formatter)
@@ -1713,12 +1717,13 @@ class UptrendScanner:
 
     def _update_log_file(self, strategy_id: str):
         """
-        Update the log file handler to include strategy ID in filename
+        Update the log file handler to include strategy ID in filename.
+        Deletes the initial log file to avoid duplicate log files.
 
         Args:
             strategy_id: Strategy identifier (e.g., 'S1', 'S12', 'S1-3-5')
         """
-        global logger
+        global logger, _initial_log_filename
 
         # Remove existing file handler
         for handler in logger.handlers[:]:
@@ -1726,13 +1731,20 @@ class UptrendScanner:
                 handler.close()
                 logger.removeHandler(handler)
 
+        # Delete the initial log file if it exists (cleanup to avoid duplicates)
+        if _initial_log_filename and os.path.exists(_initial_log_filename):
+            try:
+                os.remove(_initial_log_filename)
+            except OSError:
+                pass  # Ignore errors if file can't be deleted
+            _initial_log_filename = None  # Clear to avoid repeated deletion attempts
+
         # Create new file handler with strategy ID in filename
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         strategy_suffix = f"_{strategy_id}" if strategy_id else ""
         log_filename = f'./output/logs/scan{strategy_suffix}_{timestamp}.log'
 
         # Ensure directory exists
-        import os
         os.makedirs(os.path.dirname(log_filename), exist_ok=True)
 
         # Create and add new file handler
