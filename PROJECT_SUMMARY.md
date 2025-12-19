@@ -472,7 +472,7 @@ scanner.export_to_csv(results)
 
 ```
 uptrend_momentum/
-├── uptrend_scanner.py          # Main scanner engine (~2,800 lines)
+├── uptrend_scanner.py          # Main scanner engine (~2,900 lines)
 ├── config.py                   # Configuration (~430 lines)
 ├── example_usage.py            # 12 strategies (~890 lines)
 ├── run_multiple_strategies.py  # Sequential strategy runner
@@ -484,7 +484,9 @@ uptrend_momentum/
 ├── PROJECT_SUMMARY.md          # This file
 ├── .gitignore                  # Git ignore rules
 └── output/                     # Results directory (auto-created)
-    ├── csv/                    # CSV exports
+    ├── logs/                   # Log files
+    │   └── scan_Sx_TIMESTAMP.log
+    ├── csv/                    # CSV exports (2 decimal places, more for values < 1)
     │   ├── uptrend/
     │   │   ├── early/
     │   │   │   └── early_uptrends_Sx_TIMESTAMP.csv
@@ -492,7 +494,7 @@ uptrend_momentum/
     │   │       └── established_uptrends_Sx_TIMESTAMP.csv
     │   └── all_scanned/
     │       └── all_scanned_Sx_TIMESTAMP.csv
-    ├── excel/                  # Excel workbooks (multi-tab)
+    ├── excel/                  # Excel workbooks (multi-tab, velocity color-coded)
     │   ├── uptrend/
     │   │   ├── early/
     │   │   │   └── early_uptrends_Sx_TIMESTAMP.xlsx
@@ -803,10 +805,14 @@ Top 10 Micro Cap Momentum Stocks:
 
 ### Excel Formatting & Chart Improvements (December 2025 - Latest)
 - ✅ **Velocity Color Coding**: Excel velocity column uses colored fonts
-  - Green (#5F9936) for positive velocity (upward momentum)
+  - Green (#038511) for positive velocity (upward momentum)
   - Red (#BA2020) for negative velocity (downward momentum)
 - ✅ **Volume MA50 Line**: Chart line width increased to 2 for better visibility
 - ✅ **Ticker First Column**: Ticker moved to column A in all exports (CSV & Excel)
+- ✅ **Number Formatting**: All numeric values formatted to 2 decimal places
+  - Values < 1: Preserve up to 6 decimal places for precision
+  - Integers (volume, shares, market_cap): No decimal formatting
+- ✅ **Single Log File**: Fixed duplicate log file issue - only one log per run
 
 ### Git Version Control (December 2025)
 - ✅ **Repository**: Initialized git with `.gitignore`
