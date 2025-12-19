@@ -1,0 +1,11 @@
+# Sample watchlist for Uptrend Momentum Scanner
+# Add one ticker per line
+# Lines starting with # are comments
+
+AAPL
+MSFT
+GOOGL
+NVDA
+META
+AMZN
+TSLA
