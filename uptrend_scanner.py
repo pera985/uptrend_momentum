@@ -2203,11 +2203,11 @@ class UptrendScanner:
         early_details = stock.get('early_details', {})
 
         return {
-            # Sector/Industry first (per user requirement)
+            # Ticker first (per user requirement), then Sector/Industry
+            'ticker': stock['ticker'],
             'sector': stock.get('sector', 'Unknown'),
             'industry_group': stock.get('industry_group', 'Unknown'),
             # Basic info
-            'ticker': stock['ticker'],
             'exchange': exchange_display,
             'score': stock.get('score', 0),
             'tier': stock.get('tier', ''),
