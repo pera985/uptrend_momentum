@@ -748,3 +748,37 @@ Top 10 Micro Cap Momentum Stocks:
 - ✅ **CSV Enhancement**: Added trend_quality, choppiness_index, efficiency_ratio columns (31 columns total)
 - ✅ **Ranked Output**: Stocks sorted by score (highest to lowest) in both CSV and charts
 - ✅ **Chart Filename Prefix**: Charts include ranking prefix (e.g., `01_NVDA_S2_20251214.png`)
+
+### Sector Classification & Excel Export (December 2025 - Latest)
+- ✅ **SIC-to-GICS Mapping**: Stocks classified into 11 GICS sectors based on Polygon.io SIC codes
+- ✅ **Sector Columns**: `sector` and `industry_group` added to all exports
+- ✅ **Excel Workbooks**: Multi-tab `.xlsx` files in addition to CSV exports
+  - Tab 1: `all` - All stocks sorted by score
+  - Tab 2: `top20_per_sector` - Top 20 stocks from each sector
+  - Tabs 3-13: Individual sector tabs (one per GICS sector)
+- ✅ **Chart Folder Reorganization**: Sector-based folder structure
+  - `all_scanned/S2_TIMESTAMP/all/` - Top overall stocks
+  - `all_scanned/S2_TIMESTAMP/<sector>/` - Top stocks per sector
+  - `uptrend/early/S2_TIMESTAMP/<sector>/` - Early uptrends by sector
+  - `uptrend/established/S2_TIMESTAMP/<sector>/` - Established uptrends by sector
+- ✅ **Charts Per Sector Config**: ZZ=20 (all_scanned), YY=10 (early), XX=10 (established)
+
+### Enhanced Technical Indicators Export (December 2025 - Latest)
+- ✅ **Moving Averages**: `ma20`, `ma50`, `ma200` columns
+- ✅ **Price vs MAs**: `pct_from_ma20`, `pct_from_ma50`, `pct_from_ma200`
+- ✅ **Momentum**: `rsi`, `adx`, `macd`, `macd_signal`, `macd_histogram`
+- ✅ **Bollinger Bands**: `bb_upper`, `bb_middle`, `bb_lower`
+- ✅ **Smoothed Derivatives**: `smoothed_price`, `velocity`, `acceleration` (Gaussian smoothing)
+- ✅ **Volume**: `volume`, `avg_volume_50`
+- ✅ **Uptrend Details**: `days_in_uptrend`, `mas_stacked`
+
+### Excel Formatting & Chart Improvements (December 2025 - Latest)
+- ✅ **Velocity Color Coding**: Excel velocity column uses colored fonts
+  - Green (#5F9936) for positive velocity (upward momentum)
+  - Red (#BA2020) for negative velocity (downward momentum)
+- ✅ **Volume MA50 Line**: Chart line width increased to 2 for better visibility
+- ✅ **Ticker First Column**: Ticker moved to column A in all exports (CSV & Excel)
+
+### Git Version Control (December 2025)
+- ✅ **Repository**: Initialized git with `.gitignore`
+- ✅ **GitHub Remote**: https://github.com/pera985/uptrend_momentum.git
