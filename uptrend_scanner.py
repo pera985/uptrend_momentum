@@ -1779,6 +1779,12 @@ class UptrendScanner:
         # Get latest row for technical indicators
         latest = df.iloc[-1]
 
+        # Calculate smoothed price, velocity, and acceleration (Gaussian smoothing)
+        derivatives = calculate_smoothed_velocity_acceleration(df, sigma=3)
+        smoothed_price = derivatives['smoothed'].iloc[-1]
+        velocity = derivatives['velocity'].iloc[-1]
+        acceleration = derivatives['acceleration'].iloc[-1]
+
         result = {
             'ticker': ticker,
             'exchange': exchange,  # Add exchange info (XNAS=NASDAQ, XNYS=NYSE)
@@ -1804,6 +1810,11 @@ class UptrendScanner:
             'bb_upper': latest['bb_upper'],
             'bb_middle': latest['bb_middle'],
             'bb_lower': latest['bb_lower'],
+
+            # Smoothed Price / Velocity / Acceleration (Gaussian smoothing)
+            'smoothed_price': smoothed_price,
+            'velocity': velocity,
+            'acceleration': acceleration,
 
             # Price relative to MAs (%)
             'pct_from_ma20': ((latest['close'] - latest['ma_20']) / latest['ma_20'] * 100) if latest['ma_20'] > 0 else 0,
@@ -2273,6 +2284,11 @@ class UptrendScanner:
             'bb_upper': stock.get('bb_upper', 0),
             'bb_middle': stock.get('bb_middle', 0),
             'bb_lower': stock.get('bb_lower', 0),
+
+            # Smoothed Price / Velocity / Acceleration (Gaussian smoothing)
+            'smoothed_price': stock.get('smoothed_price', 0),
+            'velocity': stock.get('velocity', 0),
+            'acceleration': stock.get('acceleration', 0),
 
             # Volume data
             'volume': stock.get('volume', 0),
