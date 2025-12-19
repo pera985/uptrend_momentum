@@ -338,25 +338,34 @@ ls output/
 
 # Directory structure created:
 output/
-├── uptrends/
-│   ├── csv/
-│   │   ├── early/                         # No timestamp in folder
+├── logs/
+│   └── scan_Sx_TIMESTAMP.log
+├── csv/
+│   ├── uptrend/
+│   │   ├── early/
 │   │   │   └── early_uptrends_Sx_TIMESTAMP.csv
-│   │   └── established/                   # No timestamp in folder
+│   │   └── established/
 │   │       └── established_uptrends_Sx_TIMESTAMP.csv
-│   └── charts/
-│       ├── early/                         # No timestamp in folder
-│       │   └── early_Sx_TIMESTAMP/        # Timestamped subfolder with strategy ID
-│       │       └── TICKER_Sx_TIMESTAMP.png
-│       └── established/                   # No timestamp in folder
-│           └── established_Sx_TIMESTAMP/  # Timestamped subfolder with strategy ID
-│               └── TICKER_Sx_TIMESTAMP.png
-└── all_scanned/
-    ├── csv/
-    │   └── all_scanned_Sx_TIMESTAMP.csv   # Strategy ID included
-    └── charts/
-        └── charts_Sx_TIMESTAMP/           # Strategy ID in folder name
-            └── TICKER_Sx_TIMESTAMP.png
+│   └── all_scanned/
+│       └── all_scanned_Sx_TIMESTAMP.csv
+├── excel/
+│   ├── uptrend/
+│   │   ├── early/
+│   │   │   └── early_uptrends_Sx_TIMESTAMP.xlsx
+│   │   └── established/
+│   │       └── established_uptrends_Sx_TIMESTAMP.xlsx
+│   └── all_scanned/
+│       └── all_scanned_Sx_TIMESTAMP.xlsx
+└── charts/
+    ├── uptrend/
+    │   ├── early/
+    │   │   └── Sx_TIMESTAMP/<sector>/01_TICKER_Sx_TIMESTAMP.png
+    │   └── established/
+    │       └── Sx_TIMESTAMP/<sector>/01_TICKER_Sx_TIMESTAMP.png
+    └── all_scanned/
+        └── Sx_TIMESTAMP/
+            ├── all/01_TICKER_Sx_TIMESTAMP.png
+            └── <sector>/01_TICKER_Sx_TIMESTAMP.png
 ```
 
 ---
