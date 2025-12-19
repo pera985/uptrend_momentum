@@ -472,41 +472,70 @@ scanner.export_to_csv(results)
 
 ```
 uptrend_momentum/
-├── uptrend_scanner.py       # Main scanner engine (1,372 lines)
-├── config.py                # Configuration (254 lines)
-├── example_usage.py         # 11 strategies (502 lines)
+├── uptrend_scanner.py          # Main scanner engine (~2,800 lines)
+├── config.py                   # Configuration (~430 lines)
+├── example_usage.py            # 12 strategies (~890 lines)
 ├── run_multiple_strategies.py  # Sequential strategy runner
-├── requirements.txt         # Dependencies
-├── README.md               # Full documentation
-├── QUICK_START.md          # 5-minute guide
-├── SCORING_GUIDE.md        # Scoring deep-dive
-├── PROJECT_SUMMARY.md      # This file
-└── output/                 # Results directory (auto-created)
-    ├── uptrends/           # Uptrend-only results
-    │   ├── csv/            # CSV files
-    │   │   ├── early/                         # No timestamp in folder
+├── plot_single_stock.py        # Generate chart for single ticker
+├── requirements.txt            # Dependencies (pandas, numpy, matplotlib, openpyxl, scipy)
+├── README.md                   # Full documentation
+├── QUICK_START.md              # 5-minute guide
+├── SCORING_GUIDE.md            # Scoring deep-dive
+├── PROJECT_SUMMARY.md          # This file
+├── .gitignore                  # Git ignore rules
+└── output/                     # Results directory (auto-created)
+    ├── csv/                    # CSV exports
+    │   ├── uptrend/
+    │   │   ├── early/
     │   │   │   └── early_uptrends_Sx_TIMESTAMP.csv
-    │   │   └── established/                   # No timestamp in folder
+    │   │   └── established/
     │   │       └── established_uptrends_Sx_TIMESTAMP.csv
-    │   └── charts/         # Charts for uptrend stocks
-    │       ├── early/                         # No timestamp in folder
-    │       │   └── early_Sx_TIMESTAMP/        # Timestamped subfolder with strategy ID
-    │       │       └── TICKER_Sx_TIMESTAMP.png
-    │       └── established/                   # No timestamp in folder
-    │           └── established_Sx_TIMESTAMP/  # Timestamped subfolder with strategy ID
-    │               └── TICKER_Sx_TIMESTAMP.png
-    └── all_scanned/        # All scanned stocks
-        ├── csv/            # CSV files (directly here)
-        │   └── all_scanned_Sx_TIMESTAMP.csv
-        └── charts/         # Charts for all scanned stocks
-            └── charts_Sx_TIMESTAMP/           # Timestamped chart folder with strategy ID
-                └── TICKER_Sx_TIMESTAMP.png
+    │   └── all_scanned/
+    │       └── all_scanned_Sx_TIMESTAMP.csv
+    ├── excel/                  # Excel workbooks (multi-tab)
+    │   ├── uptrend/
+    │   │   ├── early/
+    │   │   │   └── early_uptrends_Sx_TIMESTAMP.xlsx
+    │   │   └── established/
+    │   │       └── established_uptrends_Sx_TIMESTAMP.xlsx
+    │   └── all_scanned/
+    │       └── all_scanned_Sx_TIMESTAMP.xlsx
+    └── charts/                 # Chart images (organized by sector)
+        ├── uptrend/
+        │   ├── early/
+        │   │   └── Sx_TIMESTAMP/
+        │   │       ├── Information Technology/
+        │   │       │   └── 01_TICKER_Sx_TIMESTAMP.png
+        │   │       ├── Health Care/
+        │   │       └── ... (11 GICS sectors)
+        │   └── established/
+        │       └── Sx_TIMESTAMP/
+        │           ├── Information Technology/
+        │           └── ... (11 GICS sectors)
+        └── all_scanned/
+            └── Sx_TIMESTAMP/
+                ├── all/                        # Top NUM_CHARTS_TO_PLOT overall
+                │   └── 01_TICKER_Sx_TIMESTAMP.png
+                ├── Information Technology/     # Top ZZ per sector
+                ├── Health Care/
+                └── ... (11 GICS sectors)
 ```
 
 **Strategy Identifier Convention:**
 - `Sx` = Strategy number (e.g., S1, S3, S12)
 - `Sx-y-z` = Multiple combined strategies (e.g., S1-3-5)
 - All outputs include strategy identifier for easy organization
+
+**Excel Workbook Tabs:**
+- `all` - All stocks sorted by score
+- `top20_per_sector` - Top 20 stocks from each sector
+- Individual sector tabs (11 GICS sectors)
+
+**Chart Folder Config (in config.py):**
+- `NUM_CHARTS_TO_PLOT` = 200 (charts in `all/` folder)
+- `CHARTS_PER_SECTOR_ALL_SCANNED` (ZZ) = 20
+- `CHARTS_PER_SECTOR_EARLY` (YY) = 10
+- `CHARTS_PER_SECTOR_ESTABLISHED` (XX) = 10
 
 ---
 
