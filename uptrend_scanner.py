@@ -2244,10 +2244,35 @@ class UptrendScanner:
             all_df.to_csv(all_file, index=False)
             logger.info(f"Saved all {len(all_flat_data)} scanned stocks to {all_file}")
 
+    def _format_number(self, value, decimals: int = 2) -> float:
+        """
+        Format a number to specified decimal places.
+        For values < 1 (absolute), preserve more precision (up to 6 decimals).
+
+        Args:
+            value: The numeric value to format
+            decimals: Number of decimal places for values >= 1 (default 2)
+
+        Returns:
+            Formatted float value
+        """
+        if value is None:
+            return 0.0
+        try:
+            num = float(value)
+            if abs(num) < 1 and num != 0:
+                # For small values, use up to 6 decimal places but trim trailing zeros
+                return round(num, 6)
+            else:
+                return round(num, decimals)
+        except (ValueError, TypeError):
+            return 0.0
+
     def _prepare_stock_data_for_export(self, stock: Dict) -> Dict:
         """
         Helper method to prepare stock data for export (used by both CSV and Excel).
         Returns a flattened dictionary with sector/industry as first columns.
+        Numbers are formatted to 2 decimal places (or more for values < 1).
         """
         # Map exchange codes to readable names
         exchange_name = stock.get('exchange', 'Unknown')
@@ -2263,6 +2288,9 @@ class UptrendScanner:
         # Get established details for days_in_uptrend
         established_details = stock.get('established_details', {})
 
+        # Helper alias for cleaner code
+        fmt = self._format_number
+
         return {
             # Ticker first (per user requirement), then Sector/Industry
             'ticker': stock['ticker'],
@@ -2271,51 +2299,51 @@ class UptrendScanner:
 
             # Basic info
             'exchange': exchange_display,
-            'score': stock.get('score', 0),
+            'score': fmt(stock.get('score', 0)),
             'tier': stock.get('tier', ''),
-            'current_price': stock.get('current_price', 0),
+            'current_price': fmt(stock.get('current_price', 0)),
 
             # Technical Indicators - Moving Averages
-            'ma20': stock.get('ma20', 0),
-            'ma50': stock.get('ma50', 0),
-            'ma200': stock.get('ma200', 0),
+            'ma20': fmt(stock.get('ma20', 0)),
+            'ma50': fmt(stock.get('ma50', 0)),
+            'ma200': fmt(stock.get('ma200', 0)),
 
             # Price relative to MAs (%)
-            'pct_from_ma20': stock.get('pct_from_ma20', 0),
-            'pct_from_ma50': stock.get('pct_from_ma50', 0),
-            'pct_from_ma200': stock.get('pct_from_ma200', 0),
+            'pct_from_ma20': fmt(stock.get('pct_from_ma20', 0)),
+            'pct_from_ma50': fmt(stock.get('pct_from_ma50', 0)),
+            'pct_from_ma200': fmt(stock.get('pct_from_ma200', 0)),
 
             # Technical Indicators - Momentum
-            'rsi': stock.get('rsi', early_details.get('rsi', 0)),
-            'adx': stock.get('adx', early_details.get('adx', 0)),
-            'macd': stock.get('macd', 0),
-            'macd_signal': stock.get('macd_signal', 0),
-            'macd_histogram': stock.get('macd_histogram', 0),
+            'rsi': fmt(stock.get('rsi', early_details.get('rsi', 0))),
+            'adx': fmt(stock.get('adx', early_details.get('adx', 0))),
+            'macd': fmt(stock.get('macd', 0)),
+            'macd_signal': fmt(stock.get('macd_signal', 0)),
+            'macd_histogram': fmt(stock.get('macd_histogram', 0)),
 
             # Technical Indicators - Bollinger Bands
-            'bb_upper': stock.get('bb_upper', 0),
-            'bb_middle': stock.get('bb_middle', 0),
-            'bb_lower': stock.get('bb_lower', 0),
+            'bb_upper': fmt(stock.get('bb_upper', 0)),
+            'bb_middle': fmt(stock.get('bb_middle', 0)),
+            'bb_lower': fmt(stock.get('bb_lower', 0)),
 
             # Smoothed Price / Velocity / Acceleration (Gaussian smoothing)
-            'smoothed_price': stock.get('smoothed_price', 0),
-            'velocity': stock.get('velocity', 0),
-            'acceleration': stock.get('acceleration', 0),
+            'smoothed_price': fmt(stock.get('smoothed_price', 0)),
+            'velocity': fmt(stock.get('velocity', 0)),
+            'acceleration': fmt(stock.get('acceleration', 0)),
 
-            # Volume data
+            # Volume data (integers, no formatting needed)
             'volume': stock.get('volume', 0),
-            'avg_volume_50': stock.get('avg_volume_50', 0),
+            'avg_volume_50': fmt(stock.get('avg_volume_50', 0)),
 
             # Volatility
-            'volatility_20': stock.get('volatility_20', 0),
-            'volatility_50': stock.get('volatility_50', 0),
+            'volatility_20': fmt(stock.get('volatility_20', 0)),
+            'volatility_50': fmt(stock.get('volatility_50', 0)),
 
-            # Company info
+            # Company info (large integers, no formatting needed)
             'shares_outstanding': stock.get('shares_outstanding', 0),
             'float_shares': stock.get('float_shares', 0),
-            'free_float_pct': stock.get('free_float_pct', 0),
+            'free_float_pct': fmt(stock.get('free_float_pct', 0)),
             'market_cap': stock.get('market_cap', 0),
-            'effective_volume_pct': stock.get('effective_volume_pct', 0),
+            'effective_volume_pct': fmt(stock.get('effective_volume_pct', 0)),
 
             # Uptrend classification
             'is_early_uptrend': stock.get('is_early_uptrend', False),
@@ -2324,19 +2352,19 @@ class UptrendScanner:
             'mas_stacked': established_details.get('mas_stacked', False),
 
             # Score breakdown
-            'trend_strength': stock['score_breakdown']['trend_strength'],
-            'momentum_quality': stock['score_breakdown']['momentum_quality'],
-            'volume_profile': stock['score_breakdown']['volume_profile'],
-            'price_structure': stock['score_breakdown']['price_structure'],
-            'risk_reward': stock['score_breakdown']['risk_reward'],
-            'trend_quality': stock['score_breakdown'].get('trend_quality', 0),
+            'trend_strength': fmt(stock['score_breakdown']['trend_strength']),
+            'momentum_quality': fmt(stock['score_breakdown']['momentum_quality']),
+            'volume_profile': fmt(stock['score_breakdown']['volume_profile']),
+            'price_structure': fmt(stock['score_breakdown']['price_structure']),
+            'risk_reward': fmt(stock['score_breakdown']['risk_reward']),
+            'trend_quality': fmt(stock['score_breakdown'].get('trend_quality', 0)),
 
             # Trend quality details
-            'choppiness_index': stock['score_breakdown'].get('details', {}).get('trend_quality', {}).get('choppiness_index', 50.0),
-            'efficiency_ratio': stock['score_breakdown'].get('details', {}).get('trend_quality', {}).get('efficiency_ratio', 0.0),
+            'choppiness_index': fmt(stock['score_breakdown'].get('details', {}).get('trend_quality', {}).get('choppiness_index', 50.0)),
+            'efficiency_ratio': fmt(stock['score_breakdown'].get('details', {}).get('trend_quality', {}).get('efficiency_ratio', 0.0)),
 
             # Early uptrend specific indicators
-            'early_score': early_details.get('score', 0),
+            'early_score': fmt(early_details.get('score', 0)),
             'ma20_cross_recent': early_details.get('ma20_cross_recent', False),
             'volume_spike': early_details.get('volume_spike', False),
             'rsi_healthy': early_details.get('rsi_healthy', False),
@@ -2397,7 +2425,7 @@ class UptrendScanner:
             all_df = all_df.sort_values('score', ascending=False).reset_index(drop=True)
 
             # Define velocity colors
-            velocity_positive_color = "5F9936"  # Green for positive velocity
+            velocity_positive_color = "038511"  # Green for positive velocity
             velocity_negative_color = "BA2020"  # Red for negative velocity
 
             def apply_velocity_formatting(worksheet, df):
