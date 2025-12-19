@@ -120,7 +120,7 @@ POLYGON_API_KEY = "your_actual_api_key_here"
 
 ```bash
 # Quick test with 50 stocks
-python example_usage.py 1
+python3 example_usage.py 1
 ```
 
 Results will be in `./output/` directory with CSV files, charts, and detailed breakdowns.
@@ -135,7 +135,7 @@ Results will be in `./output/` directory with CSV files, charts, and detailed br
 The `example_usage.py` file includes 9 pre-built strategies:
 
 ```bash
-python example_usage.py <number>
+python3 example_usage.py <number>
 ```
 
 1. **Quick Test Scan** - Test with 50 stocks
@@ -703,7 +703,7 @@ Based on the original chat discussion, here's the recommended workflow for posit
 **Evening (After Close - 6:00 PM)**
 ```bash
 # Run daily scan
-python example_usage.py 9  # Curated watchlist
+python3 example_usage.py 9  # Curated watchlist
 
 # Review top 15 stocks
 # Update positions (check if scores dropped)

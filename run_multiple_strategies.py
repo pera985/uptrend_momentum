@@ -5,8 +5,8 @@ Run Multiple Strategies
 Execute multiple scanning strategies in sequence.
 
 Usage:
-    python run_multiple_strategies.py 3 4 5 8
-    python run_multiple_strategies.py 1 9
+    python3 run_multiple_strategies.py 3 4 5 8
+    python3 run_multiple_strategies.py 1 9
 """
 
 import sys
@@ -62,11 +62,11 @@ def main():
     if len(sys.argv) < 2:
         print("\nRun Multiple Strategies")
         print("=" * 70)
-        print("\nUsage: python run_multiple_strategies.py <strategy_numbers...>")
+        print("\nUsage: python3 run_multiple_strategies.py <strategy_numbers...>")
         print("\nExamples:")
-        print("  python run_multiple_strategies.py 3 4 5 8")
-        print("  python run_multiple_strategies.py 1 9")
-        print("  python run_multiple_strategies.py 3 4 5")
+        print("  python3 run_multiple_strategies.py 3 4 5 8")
+        print("  python3 run_multiple_strategies.py 1 9")
+        print("  python3 run_multiple_strategies.py 3 4 5")
         print("\nAvailable Strategies:")
         for num, (name, _) in strategies.items():
             print(f"  {num}. {name}")

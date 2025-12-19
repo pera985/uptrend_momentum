@@ -5,11 +5,11 @@ Example Usage Scripts for Uptrend Momentum Scanner
 This file demonstrates 12 different scanning strategies and use cases.
 
 Usage:
-    python example_usage.py <strategy_number>
+    python3 example_usage.py <strategy_number>
 
     Example:
-    python example_usage.py 1   # Run Strategy 1: Quick test scan
-    python example_usage.py 12  # Run Strategy 12: Micro cap momentum
+    python3 example_usage.py 1   # Run Strategy 1: Quick test scan
+    python3 example_usage.py 12  # Run Strategy 12: Micro cap momentum
 """
 
 import sys
@@ -31,7 +31,7 @@ def format_time_hms(seconds: float) -> str:
 
 def export_and_plot_results(scanner, results, num_charts=None, strategy_id=None, scan_time=None):
     """
-    Helper function to export CSVs and generate charts for both uptrends and all scanned stocks
+    Helper function to export CSVs, Excel workbooks, and generate charts for both uptrends and all scanned stocks
 
     Args:
         scanner: UptrendScanner instance
@@ -57,56 +57,90 @@ def export_and_plot_results(scanner, results, num_charts=None, strategy_id=None,
     # Export all CSVs (uptrends + all scanned stocks)
     scanner.export_to_csv(results, strategy_id=strategy_id)
 
+    # Export Excel workbooks (multi-tab: all, top20_per_sector, sector tabs)
+    scanner.export_to_excel(results, strategy_id=strategy_id)
+
     # Track total charts generated
     total_charts = 0
 
-    # Generate charts for established uptrend stocks (to ./output/charts/uptrend/established/established_Sx_TIMESTAMP/)
+    # ============================================================================
+    # NEW FOLDER STRUCTURE (per plan):
+    # - all_scanned: S2_TIMESTAMP/ with "all" folder + sector folders (ZZ charts each)
+    # - early: S2_TIMESTAMP/ with sector folders (YY charts each)
+    # - established: S2_TIMESTAMP/ with sector folders (XX charts each)
+    # ============================================================================
+
+    # Generate charts for ESTABLISHED uptrend stocks (sector folders with XX charts each)
     if results['established_uptrends']:
-        top_established = results['established_uptrends'][:num_charts]
-        established_dir = f'./output/charts/uptrend/established/established{strategy_suffix}_{timestamp}'
+        # New folder structure: output/charts/uptrend/established/S2_TIMESTAMP/<sector>/
+        established_dir = f'./output/charts/uptrend/established/{strategy_id}_{timestamp}'
         print(f"\n{'='*70}")
-        print(f"Generating {len(top_established)} charts for established uptrend stocks...")
+        print(f"Generating charts for {len(results['established_uptrends'])} established uptrend stocks...")
+        print(f"  Top {config.CHARTS_PER_SECTOR_ESTABLISHED} per sector (XX={config.CHARTS_PER_SECTOR_ESTABLISHED})")
         print("=" * 70)
-        established_chart_files = scanner.plot_watchlist(top_established, output_dir=established_dir, strategy_id=strategy_id)
-        total_charts += len(established_chart_files)
-        print(f"✓ Generated {len(established_chart_files)} established uptrend charts in {established_dir}/")
 
-    # Generate charts for early uptrend stocks (to ./output/charts/uptrend/early/early_Sx_TIMESTAMP/)
+        established_chart_results = scanner.plot_watchlist_by_sector(
+            results['established_uptrends'],
+            output_dir=established_dir,
+            strategy_id=strategy_id,
+            charts_per_sector=config.CHARTS_PER_SECTOR_ESTABLISHED,
+            include_all_folder=False  # No 'all' folder for established uptrends
+        )
+
+        established_chart_count = sum(len(files) for files in established_chart_results.values())
+        total_charts += established_chart_count
+        print(f"✓ Generated {established_chart_count} established uptrend charts across {len(established_chart_results)} sectors")
+        print(f"  Location: {established_dir}/")
+
+    # Generate charts for EARLY uptrend stocks (sector folders with YY charts each)
     if results['early_uptrends']:
-        top_early = results['early_uptrends'][:num_charts]
-        early_dir = f'./output/charts/uptrend/early/early{strategy_suffix}_{timestamp}'
+        # New folder structure: output/charts/uptrend/early/S2_TIMESTAMP/<sector>/
+        early_dir = f'./output/charts/uptrend/early/{strategy_id}_{timestamp}'
         print(f"\n{'='*70}")
-        print(f"Generating {len(top_early)} charts for early uptrend stocks...")
+        print(f"Generating charts for {len(results['early_uptrends'])} early uptrend stocks...")
+        print(f"  Top {config.CHARTS_PER_SECTOR_EARLY} per sector (YY={config.CHARTS_PER_SECTOR_EARLY})")
         print("=" * 70)
-        early_chart_files = scanner.plot_watchlist(top_early, output_dir=early_dir, strategy_id=strategy_id)
-        total_charts += len(early_chart_files)
-        print(f"✓ Generated {len(early_chart_files)} early uptrend charts in {early_dir}/")
 
-    # Generate charts for ALL scanned stocks (to ./output/charts/all_scanned/charts_Sx_TIMESTAMP/)
+        early_chart_results = scanner.plot_watchlist_by_sector(
+            results['early_uptrends'],
+            output_dir=early_dir,
+            strategy_id=strategy_id,
+            charts_per_sector=config.CHARTS_PER_SECTOR_EARLY,
+            include_all_folder=False  # No 'all' folder for early uptrends
+        )
+
+        early_chart_count = sum(len(files) for files in early_chart_results.values())
+        total_charts += early_chart_count
+        print(f"✓ Generated {early_chart_count} early uptrend charts across {len(early_chart_results)} sectors")
+        print(f"  Location: {early_dir}/")
+
+    # Generate charts for ALL SCANNED stocks (all folder + sector folders with ZZ charts each)
     if results.get('all_scanned_stocks'):
-        # Determine how many charts to generate for all_scanned stocks
-        # Priority: USE_NUM_CHARTS_FOR_ALL_SCANNED controls behavior
-        # False (default): Generate charts for ALL scanned stocks (respects MAX_STOCKS_TO_SCAN)
-        # True: Limit to NUM_CHARTS_TO_PLOT
-        if config.USE_NUM_CHARTS_FOR_ALL_SCANNED:
-            num_all_scanned_charts = num_charts
-            all_stocks = results['all_scanned_stocks'][:num_all_scanned_charts]
-        else:
-            # Use all scanned stocks (they're already limited by MAX_STOCKS_TO_SCAN during scanning)
-            all_stocks = results['all_scanned_stocks']
-            num_all_scanned_charts = len(all_stocks)
-
-        all_scanned_dir = f'./output/charts/all_scanned/charts{strategy_suffix}_{timestamp}'
+        # New folder structure: output/charts/all_scanned/S2_TIMESTAMP/
+        #   - all/ (top NUM_CHARTS_TO_PLOT overall)
+        #   - <sector>/ (top ZZ per sector)
+        all_scanned_dir = f'./output/charts/all_scanned/{strategy_id}_{timestamp}'
         print(f"\n{'='*70}")
-        print(f"Generating {len(all_stocks)} charts for all scanned stocks...")
-        if config.USE_NUM_CHARTS_FOR_ALL_SCANNED:
-            print(f"(Limited by NUM_CHARTS_TO_PLOT={num_charts})")
-        else:
-            print(f"(Using all scanned stocks - controlled by MAX_STOCKS_TO_SCAN)")
+        print(f"Generating charts for {len(results['all_scanned_stocks'])} scanned stocks...")
+        print(f"  'all' folder: top {num_charts} overall (NUM_CHARTS_TO_PLOT)")
+        print(f"  Sector folders: top {config.CHARTS_PER_SECTOR_ALL_SCANNED} per sector (ZZ={config.CHARTS_PER_SECTOR_ALL_SCANNED})")
         print("=" * 70)
-        all_chart_files = scanner.plot_watchlist(all_stocks, output_dir=all_scanned_dir, strategy_id=strategy_id)
-        total_charts += len(all_chart_files)
-        print(f"✓ Generated {len(all_chart_files)} charts in {all_scanned_dir}/")
+
+        all_chart_results = scanner.plot_watchlist_by_sector(
+            results['all_scanned_stocks'],
+            output_dir=all_scanned_dir,
+            strategy_id=strategy_id,
+            charts_per_sector=config.CHARTS_PER_SECTOR_ALL_SCANNED,
+            include_all_folder=True,  # Include 'all' folder for all_scanned
+            max_all_charts=num_charts
+        )
+
+        all_chart_count = sum(len(files) for files in all_chart_results.values())
+        total_charts += all_chart_count
+        print(f"✓ Generated {all_chart_count} charts for all scanned stocks")
+        print(f"  'all' folder: {len(all_chart_results.get('all', []))} charts")
+        print(f"  Sector folders: {len(all_chart_results) - 1} sectors")
+        print(f"  Location: {all_scanned_dir}/")
 
     # Calculate chart generation time
     chart_time = time.time() - chart_start_time
@@ -114,12 +148,20 @@ def export_and_plot_results(scanner, results, num_charts=None, strategy_id=None,
     print(f"\n{'='*70}")
     print("OUTPUT SUMMARY:")
     print("=" * 70)
-    print(f"  Early Uptrends CSV:          ./output/csv/uptrend/early/early_uptrends{strategy_suffix}_{timestamp}.csv")
-    print(f"  Established Uptrends CSV:    ./output/csv/uptrend/established/established_uptrends{strategy_suffix}_{timestamp}.csv")
-    print(f"  Early Uptrends Charts:       ./output/charts/uptrend/early/early{strategy_suffix}_{timestamp}/")
-    print(f"  Established Uptrends Charts: ./output/charts/uptrend/established/established{strategy_suffix}_{timestamp}/")
-    print(f"  All Scanned CSV:             ./output/csv/all_scanned/all_scanned{strategy_suffix}_{timestamp}.csv")
-    print(f"  All Scanned Charts:          ./output/charts/all_scanned/charts{strategy_suffix}_{timestamp}/")
+    print("CSV Files:")
+    print(f"  Early Uptrends:              ./output/csv/uptrend/early/early_uptrends{strategy_suffix}_{timestamp}.csv")
+    print(f"  Established Uptrends:        ./output/csv/uptrend/established/established_uptrends{strategy_suffix}_{timestamp}.csv")
+    print(f"  All Scanned:                 ./output/csv/all_scanned/all_scanned{strategy_suffix}_{timestamp}.csv")
+    print("\nExcel Workbooks (multi-tab: all, top20_per_sector, sector tabs):")
+    print(f"  Early Uptrends:              ./output/excel/uptrend/early/early_uptrends{strategy_suffix}_{timestamp}.xlsx")
+    print(f"  Established Uptrends:        ./output/excel/uptrend/established/established_uptrends{strategy_suffix}_{timestamp}.xlsx")
+    print(f"  All Scanned:                 ./output/excel/all_scanned/all_scanned{strategy_suffix}_{timestamp}.xlsx")
+    print("\nCharts (organized by sector):")
+    print(f"  Early Uptrends:              ./output/charts/uptrend/early/{strategy_id}_{timestamp}/<sector>/")
+    print(f"  Established Uptrends:        ./output/charts/uptrend/established/{strategy_id}_{timestamp}/<sector>/")
+    print(f"  All Scanned:                 ./output/charts/all_scanned/{strategy_id}_{timestamp}/")
+    print(f"                               └── all/ (top {num_charts} overall)")
+    print(f"                               └── <sector>/ (top {config.CHARTS_PER_SECTOR_ALL_SCANNED} per sector)")
     print("=" * 70)
 
     # Print timing summary
@@ -847,15 +889,15 @@ def main():
     if len(sys.argv) < 2:
         print("\nUptrend Momentum Scanner - Example Strategies")
         print("=" * 70)
-        print("\nUsage: python example_usage.py <strategy_number> [options]")
+        print("\nUsage: python3 example_usage.py <strategy_number> [options]")
         print("\nAvailable Strategies:")
         for num, (name, _) in strategies.items():
             print(f"  {num}. {name}")
         print("\nExamples:")
-        print("  python example_usage.py 1")
-        print(f"  python example_usage.py 9                    # Default: scan {config.MAX_STOCKS_STRATEGY_9}, plot {config.NUM_CHARTS_TO_PLOT}")
-        print(f"  python example_usage.py 9 200               # Scan 200 stocks, plot {config.NUM_CHARTS_TO_PLOT} (default)")
-        print("  python example_usage.py 9 500 25            # Scan 500 stocks, plot 25")
+        print("  python3 example_usage.py 1")
+        print(f"  python3 example_usage.py 9                    # Default: scan {config.MAX_STOCKS_STRATEGY_9}, plot {config.NUM_CHARTS_TO_PLOT}")
+        print(f"  python3 example_usage.py 9 200               # Scan 200 stocks, plot {config.NUM_CHARTS_TO_PLOT} (default)")
+        print("  python3 example_usage.py 9 500 25            # Scan 500 stocks, plot 25")
         sys.exit(1)
 
     strategy_num = sys.argv[1]

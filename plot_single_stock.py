@@ -5,8 +5,8 @@ Plot a Single Stock Chart
 Utility script to generate a detailed chart for a single stock.
 
 Usage:
-    python plot_single_stock.py AAPL
-    python plot_single_stock.py TSLA NVDA MSFT  # Multiple stocks
+    python3 plot_single_stock.py AAPL
+    python3 plot_single_stock.py TSLA NVDA MSFT  # Multiple stocks
 """
 
 import sys
@@ -18,10 +18,10 @@ def main():
     if len(sys.argv) < 2:
         print("\nPlot Single Stock - Generate detailed technical analysis chart")
         print("=" * 70)
-        print("\nUsage: python plot_single_stock.py <TICKER> [TICKER2] [TICKER3] ...")
+        print("\nUsage: python3 plot_single_stock.py <TICKER> [TICKER2] [TICKER3] ...")
         print("\nExamples:")
-        print("  python plot_single_stock.py AAPL")
-        print("  python plot_single_stock.py TSLA NVDA MSFT")
+        print("  python3 plot_single_stock.py AAPL")
+        print("  python3 plot_single_stock.py TSLA NVDA MSFT")
         sys.exit(1)
 
     # Check API key

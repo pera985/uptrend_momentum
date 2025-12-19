@@ -98,10 +98,17 @@ MAX_STOCKS_STRATEGY_9 = None  # Max stocks to scan for Strategy 9 (None = scan a
 NUM_CHARTS_TO_PLOT = 200   # Number of charts to generate (applies to all strategies 1-9)
 
 # Chart Generation Control for All Scanned Stocks
-# Controls how many charts to generate for all_scanned stocks
-USE_NUM_CHARTS_FOR_ALL_SCANNED = True # True: use NUM_CHARTS_TO_PLOT, False: use MAX_STOCKS_TO_SCAN
-                                        # Priority: If False, generates charts for ALL scanned stocks (up to MAX_STOCKS_TO_SCAN)
-                                        # If True, only generates NUM_CHARTS_TO_PLOT charts for all_scanned
+# LEGACY VARIABLE - kept for backward compatibility
+# With the new sector-based chart organization (plot_watchlist_by_sector), this is no longer used.
+# The new system uses:
+#   - NUM_CHARTS_TO_PLOT: Controls charts in the 'all/' folder
+#   - CHARTS_PER_SECTOR_ALL_SCANNED (ZZ): Controls charts per sector folder
+USE_NUM_CHARTS_FOR_ALL_SCANNED = True  # Legacy - not used in new sector-based chart generation
+
+# Charts per sector configuration (for sector-based chart organization)
+CHARTS_PER_SECTOR_ALL_SCANNED = 20    # ZZ - top stocks per sector in all_scanned folders
+CHARTS_PER_SECTOR_EARLY = 10          # YY - top stocks per sector in early uptrend folders
+CHARTS_PER_SECTOR_ESTABLISHED = 10    # XX - top stocks per sector in established uptrend folders
 
 # FULL MARKET SCAN NOTE:
 # ----------------------

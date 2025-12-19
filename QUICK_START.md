@@ -36,7 +36,7 @@ Save the file.
 
 ```bash
 # Test with 50 stocks
-python example_usage.py 1
+python3 example_usage.py 1
 ```
 
 You should see:
@@ -78,16 +78,16 @@ Open the CSV files in Excel or any spreadsheet app.
 
 ```bash
 # Full market scan (takes 1-2 hours)
-python example_usage.py 2
+python3 example_usage.py 2
 
 # Large cap quality focus
-python example_usage.py 3
+python3 example_usage.py 3
 
 # Early breakouts
-python example_usage.py 5
+python3 example_usage.py 5
 
 # Generate curated watchlist
-python example_usage.py 9
+python3 example_usage.py 9
 ```
 
 ### Customize Configuration
@@ -123,10 +123,10 @@ For position trading, run this daily after market close (6 PM):
 
 ```bash
 # Linux/Mac: Add to crontab
-0 18 * * 1-5 cd /path/to/uptrend_momentum && python example_usage.py 9
+0 18 * * 1-5 cd /path/to/uptrend_momentum && python3 example_usage.py 9
 
 # Windows: Use Task Scheduler
-# Schedule python example_usage.py 9 at 6:00 PM weekdays
+# Schedule python3 example_usage.py 9 at 6:00 PM weekdays
 ```
 
 ## Common Issues
@@ -189,7 +189,7 @@ Monitor your positions daily. Exit when:
 **Evening (6:00 PM)** - After market close:
 ```bash
 # 1. Run curated watchlist generator
-python example_usage.py 9
+python3 example_usage.py 9
 
 # 2. Review top 15 stocks in output/watchlist_tickers.txt
 

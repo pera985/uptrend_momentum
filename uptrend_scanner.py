@@ -50,6 +50,261 @@ COLOR_VEL_POS_ACC_NEG = '#69F0AE'  # Medium green - rising but flattening
 COLOR_VEL_NEG_ACC_POS = '#FF8A80'  # Medium red - falling but flattening
 COLOR_VEL_NEG_ACC_NEG = '#D50000'  # Bright red - falling & steepening
 
+# ==============================================================================
+# SIC to GICS Sector Mapping
+# ==============================================================================
+# Maps Standard Industrial Classification (SIC) codes from Polygon.io
+# to GICS (Global Industry Classification Standard) sectors
+# ==============================================================================
+
+# The 11 GICS Sectors
+GICS_SECTORS = [
+    'Communication Services',
+    'Consumer Discretionary',
+    'Consumer Staples',
+    'Energy',
+    'Financials',
+    'Health Care',
+    'Industrials',
+    'Information Technology',
+    'Materials',
+    'Real Estate',
+    'Utilities'
+]
+
+def get_gics_sector_from_sic(sic_code: str, sic_description: str = '') -> Tuple[str, str]:
+    """
+    Map SIC code to GICS sector and industry group.
+
+    Args:
+        sic_code: The SIC code string (e.g., '3571', '6022')
+        sic_description: The SIC description from Polygon.io (optional, used for refinement)
+
+    Returns:
+        Tuple of (sector, industry_group)
+    """
+    if not sic_code:
+        return 'Unknown', 'Unknown'
+
+    try:
+        sic = int(sic_code)
+    except (ValueError, TypeError):
+        return 'Unknown', 'Unknown'
+
+    # SIC code ranges to GICS sector mapping
+    # Based on Standard Industrial Classification structure
+
+    # Agriculture, Forestry, Fishing (0100-0999) -> Materials
+    if 100 <= sic <= 999:
+        return 'Materials', 'Materials'
+
+    # Mining (1000-1499) -> Energy or Materials
+    elif 1000 <= sic <= 1499:
+        if 1300 <= sic <= 1399:  # Oil & Gas Extraction
+            return 'Energy', 'Energy Equipment & Services'
+        else:  # Metal, coal, other mining
+            return 'Materials', 'Materials'
+
+    # Construction (1500-1799) -> Industrials
+    elif 1500 <= sic <= 1799:
+        return 'Industrials', 'Capital Goods'
+
+    # Manufacturing (2000-3999)
+    elif 2000 <= sic <= 3999:
+        # Food & Kindred Products (2000-2099) -> Consumer Staples
+        if 2000 <= sic <= 2099:
+            return 'Consumer Staples', 'Food Beverage & Tobacco'
+        # Tobacco (2100-2199) -> Consumer Staples
+        elif 2100 <= sic <= 2199:
+            return 'Consumer Staples', 'Food Beverage & Tobacco'
+        # Textile Mill Products (2200-2299) -> Consumer Discretionary
+        elif 2200 <= sic <= 2299:
+            return 'Consumer Discretionary', 'Consumer Durables & Apparel'
+        # Apparel (2300-2399) -> Consumer Discretionary
+        elif 2300 <= sic <= 2399:
+            return 'Consumer Discretionary', 'Consumer Durables & Apparel'
+        # Lumber & Wood (2400-2499) -> Materials
+        elif 2400 <= sic <= 2499:
+            return 'Materials', 'Materials'
+        # Furniture (2500-2599) -> Consumer Discretionary
+        elif 2500 <= sic <= 2599:
+            return 'Consumer Discretionary', 'Consumer Durables & Apparel'
+        # Paper & Allied Products (2600-2699) -> Materials
+        elif 2600 <= sic <= 2699:
+            return 'Materials', 'Materials'
+        # Printing & Publishing (2700-2799) -> Communication Services
+        elif 2700 <= sic <= 2799:
+            return 'Communication Services', 'Media & Entertainment'
+        # Chemicals (2800-2899) -> Materials (except pharma)
+        elif 2800 <= sic <= 2899:
+            if 2830 <= sic <= 2836:  # Drugs/Pharmaceuticals
+                return 'Health Care', 'Pharmaceuticals Biotechnology & Life Sciences'
+            else:
+                return 'Materials', 'Materials'
+        # Petroleum Refining (2900-2999) -> Energy
+        elif 2900 <= sic <= 2999:
+            return 'Energy', 'Oil Gas & Consumable Fuels'
+        # Rubber & Plastics (3000-3099) -> Materials
+        elif 3000 <= sic <= 3099:
+            return 'Materials', 'Materials'
+        # Leather (3100-3199) -> Consumer Discretionary
+        elif 3100 <= sic <= 3199:
+            return 'Consumer Discretionary', 'Consumer Durables & Apparel'
+        # Stone, Clay, Glass (3200-3299) -> Materials
+        elif 3200 <= sic <= 3299:
+            return 'Materials', 'Materials'
+        # Primary Metal (3300-3399) -> Materials
+        elif 3300 <= sic <= 3399:
+            return 'Materials', 'Materials'
+        # Fabricated Metal (3400-3499) -> Industrials
+        elif 3400 <= sic <= 3499:
+            return 'Industrials', 'Capital Goods'
+        # Industrial Machinery & Equipment (3500-3599) -> Industrials
+        elif 3500 <= sic <= 3599:
+            if 3570 <= sic <= 3579:  # Computer Equipment
+                return 'Information Technology', 'Technology Hardware & Equipment'
+            else:
+                return 'Industrials', 'Capital Goods'
+        # Electronic Equipment (3600-3699) -> Information Technology
+        elif 3600 <= sic <= 3699:
+            if 3660 <= sic <= 3669:  # Communications Equipment
+                return 'Communication Services', 'Telecommunication Services'
+            elif 3674 <= sic <= 3679:  # Semiconductors
+                return 'Information Technology', 'Semiconductors & Semiconductor Equipment'
+            else:
+                return 'Information Technology', 'Technology Hardware & Equipment'
+        # Transportation Equipment (3700-3799) -> Industrials or Consumer Discretionary
+        elif 3700 <= sic <= 3799:
+            if 3711 <= sic <= 3716:  # Motor Vehicles
+                return 'Consumer Discretionary', 'Automobiles & Components'
+            else:
+                return 'Industrials', 'Capital Goods'
+        # Measuring Instruments (3800-3899) -> Health Care or Information Technology
+        elif 3800 <= sic <= 3899:
+            if 3841 <= sic <= 3851:  # Medical Instruments
+                return 'Health Care', 'Health Care Equipment & Services'
+            else:
+                return 'Information Technology', 'Technology Hardware & Equipment'
+        # Miscellaneous Manufacturing (3900-3999) -> Consumer Discretionary
+        elif 3900 <= sic <= 3999:
+            return 'Consumer Discretionary', 'Consumer Durables & Apparel'
+
+    # Transportation, Communications, Utilities (4000-4999)
+    elif 4000 <= sic <= 4999:
+        # Railroads (4000-4099) -> Industrials
+        if 4000 <= sic <= 4099:
+            return 'Industrials', 'Transportation'
+        # Trucking (4100-4199) -> Industrials
+        elif 4100 <= sic <= 4199:
+            return 'Industrials', 'Transportation'
+        # Water Transportation (4400-4499) -> Industrials
+        elif 4400 <= sic <= 4499:
+            return 'Industrials', 'Transportation'
+        # Transportation by Air (4500-4599) -> Industrials
+        elif 4500 <= sic <= 4599:
+            return 'Industrials', 'Transportation'
+        # Pipelines (4600-4699) -> Energy
+        elif 4600 <= sic <= 4699:
+            return 'Energy', 'Oil Gas & Consumable Fuels'
+        # Communications (4800-4899) -> Communication Services
+        elif 4800 <= sic <= 4899:
+            return 'Communication Services', 'Telecommunication Services'
+        # Utilities (4900-4999) -> Utilities
+        elif 4900 <= sic <= 4999:
+            return 'Utilities', 'Utilities'
+        else:
+            return 'Industrials', 'Transportation'
+
+    # Wholesale Trade (5000-5199) -> Consumer Discretionary
+    elif 5000 <= sic <= 5199:
+        return 'Consumer Discretionary', 'Consumer Discretionary Distribution & Retail'
+
+    # Retail Trade (5200-5999)
+    elif 5200 <= sic <= 5999:
+        # Eating/Drinking Places (5800-5899) -> Consumer Discretionary
+        if 5800 <= sic <= 5899:
+            return 'Consumer Discretionary', 'Consumer Services'
+        # Food Stores (5400-5499) -> Consumer Staples
+        elif 5400 <= sic <= 5499:
+            return 'Consumer Staples', 'Consumer Staples Distribution & Retail'
+        else:
+            return 'Consumer Discretionary', 'Consumer Discretionary Distribution & Retail'
+
+    # Finance, Insurance, Real Estate (6000-6799)
+    elif 6000 <= sic <= 6799:
+        # Banks (6000-6099) -> Financials
+        if 6000 <= sic <= 6099:
+            return 'Financials', 'Banks'
+        # Credit Agencies (6100-6199) -> Financials
+        elif 6100 <= sic <= 6199:
+            return 'Financials', 'Financial Services'
+        # Securities (6200-6299) -> Financials
+        elif 6200 <= sic <= 6299:
+            return 'Financials', 'Financial Services'
+        # Insurance (6300-6399) -> Financials
+        elif 6300 <= sic <= 6399:
+            return 'Financials', 'Insurance'
+        # Insurance Agents (6400-6499) -> Financials
+        elif 6400 <= sic <= 6499:
+            return 'Financials', 'Insurance'
+        # Real Estate (6500-6599) -> Real Estate
+        elif 6500 <= sic <= 6599:
+            return 'Real Estate', 'Real Estate Management & Development'
+        # Holding & Investment Offices (6700-6799) -> Financials
+        elif 6700 <= sic <= 6799:
+            if 6798 == sic:  # REITs
+                return 'Real Estate', 'Equity REITs'
+            else:
+                return 'Financials', 'Financial Services'
+
+    # Services (7000-8999)
+    elif 7000 <= sic <= 8999:
+        # Hotels (7000-7099) -> Consumer Discretionary
+        if 7000 <= sic <= 7099:
+            return 'Consumer Discretionary', 'Consumer Services'
+        # Personal Services (7200-7299) -> Consumer Discretionary
+        elif 7200 <= sic <= 7299:
+            return 'Consumer Discretionary', 'Consumer Services'
+        # Business Services (7300-7399) -> Industrials or Info Tech
+        elif 7300 <= sic <= 7399:
+            if 7370 <= sic <= 7379:  # Computer Programming
+                return 'Information Technology', 'Software & Services'
+            else:
+                return 'Industrials', 'Commercial & Professional Services'
+        # Auto Services (7500-7599) -> Consumer Discretionary
+        elif 7500 <= sic <= 7599:
+            return 'Consumer Discretionary', 'Consumer Services'
+        # Motion Pictures (7800-7899) -> Communication Services
+        elif 7800 <= sic <= 7899:
+            return 'Communication Services', 'Media & Entertainment'
+        # Amusement & Recreation (7900-7999) -> Consumer Discretionary
+        elif 7900 <= sic <= 7999:
+            return 'Consumer Discretionary', 'Consumer Services'
+        # Health Services (8000-8099) -> Health Care
+        elif 8000 <= sic <= 8099:
+            return 'Health Care', 'Health Care Equipment & Services'
+        # Legal Services (8100-8199) -> Industrials
+        elif 8100 <= sic <= 8199:
+            return 'Industrials', 'Commercial & Professional Services'
+        # Educational Services (8200-8299) -> Consumer Discretionary
+        elif 8200 <= sic <= 8299:
+            return 'Consumer Discretionary', 'Consumer Services'
+        # Social Services (8300-8399) -> Health Care
+        elif 8300 <= sic <= 8399:
+            return 'Health Care', 'Health Care Equipment & Services'
+        # Engineering & Accounting (8700-8799) -> Industrials
+        elif 8700 <= sic <= 8799:
+            return 'Industrials', 'Commercial & Professional Services'
+        else:
+            return 'Consumer Discretionary', 'Consumer Services'
+
+    # Public Administration (9000-9999) -> Industrials (rare for public companies)
+    elif 9000 <= sic <= 9999:
+        return 'Industrials', 'Capital Goods'
+
+    # Default fallback
+    return 'Unknown', 'Unknown'
+
 # Swing label colors (same as stock_trend_analyzer)
 SWING_LABEL_COLORS = {
     'HH': 'darkgreen',   # Higher High - bullish
@@ -583,7 +838,7 @@ class PolygonAPI:
 
     def get_ticker_details(self, ticker: str) -> Dict:
         """
-        Get ticker details including shares outstanding and float data
+        Get ticker details including shares outstanding, float data, and sector/industry
 
         Args:
             ticker: Stock symbol
@@ -594,6 +849,10 @@ class PolygonAPI:
             - float_shares: Shares available for trading (free float)
             - free_float_pct: Percentage of shares that are free float
             - market_cap: Market capitalization
+            - sector: GICS sector (mapped from SIC code)
+            - industry_group: GICS industry group (mapped from SIC code)
+            - sic_code: Original SIC code from Polygon
+            - sic_description: SIC description from Polygon
         """
         self._rate_limit_wait()
 
@@ -627,20 +886,35 @@ class PolygonAPI:
 
                 free_float_pct = 80.0 if shares_outstanding > 0 else 0.0
 
-                logger.debug(f"{ticker}: Outstanding={shares_outstanding:,.0f}, Float={float_shares:,.0f}")
+                # Extract SIC code and description for sector mapping
+                sic_code = results.get('sic_code', '')
+                sic_description = results.get('sic_description', '')
+
+                # Map SIC to GICS sector and industry group
+                sector, industry_group = get_gics_sector_from_sic(sic_code, sic_description)
+
+                logger.debug(f"{ticker}: Outstanding={shares_outstanding:,.0f}, Float={float_shares:,.0f}, Sector={sector}")
 
                 return {
                     'shares_outstanding': shares_outstanding,
                     'float_shares': float_shares,
                     'free_float_pct': free_float_pct,
-                    'market_cap': market_cap
+                    'market_cap': market_cap,
+                    'sector': sector,
+                    'industry_group': industry_group,
+                    'sic_code': sic_code,
+                    'sic_description': sic_description
                 }
 
             return {
                 'shares_outstanding': 0,
                 'float_shares': 0,
                 'free_float_pct': 0,
-                'market_cap': 0
+                'market_cap': 0,
+                'sector': 'Unknown',
+                'industry_group': 'Unknown',
+                'sic_code': '',
+                'sic_description': ''
             }
 
         except Exception as e:
@@ -649,7 +923,11 @@ class PolygonAPI:
                 'shares_outstanding': 0,
                 'float_shares': 0,
                 'free_float_pct': 0,
-                'market_cap': 0
+                'market_cap': 0,
+                'sector': 'Unknown',
+                'industry_group': 'Unknown',
+                'sic_code': '',
+                'sic_description': ''
             }
 
 
@@ -1501,6 +1779,8 @@ class UptrendScanner:
         result = {
             'ticker': ticker,
             'exchange': exchange,  # Add exchange info (XNAS=NASDAQ, XNYS=NYSE)
+            'sector': ticker_details.get('sector', 'Unknown'),
+            'industry_group': ticker_details.get('industry_group', 'Unknown'),
             'is_early_uptrend': is_early,
             'is_established_uptrend': is_established,
             'current_price': df.iloc[-1]['close'],
@@ -1511,6 +1791,8 @@ class UptrendScanner:
             'free_float_pct': ticker_details.get('free_float_pct', 0),
             'market_cap': ticker_details.get('market_cap', 0),
             'effective_volume_pct': effective_volume_pct,
+            'sic_code': ticker_details.get('sic_code', ''),
+            'sic_description': ticker_details.get('sic_description', ''),
             'early_details': early_details,
             'established_details': established_details
         }
@@ -1722,6 +2004,9 @@ class UptrendScanner:
 
                 early_details = stock.get('early_details', {})
                 flat = {
+                    # Sector/Industry first (per user requirement)
+                    'sector': stock.get('sector', 'Unknown'),
+                    'industry_group': stock.get('industry_group', 'Unknown'),
                     # Basic info (same as established)
                     'ticker': stock['ticker'],
                     'exchange': exchange_display,
@@ -1784,6 +2069,9 @@ class UptrendScanner:
 
                 early_details = stock.get('early_details', {})
                 flat = {
+                    # Sector/Industry first (per user requirement)
+                    'sector': stock.get('sector', 'Unknown'),
+                    'industry_group': stock.get('industry_group', 'Unknown'),
                     # Basic info
                     'ticker': stock['ticker'],
                     'exchange': exchange_display,
@@ -1849,6 +2137,9 @@ class UptrendScanner:
 
                 early_details = stock.get('early_details', {})
                 flat = {
+                    # Sector/Industry first (per user requirement)
+                    'sector': stock.get('sector', 'Unknown'),
+                    'industry_group': stock.get('industry_group', 'Unknown'),
                     # Basic info
                     'ticker': stock['ticker'],
                     'exchange': exchange_display,
@@ -1894,6 +2185,161 @@ class UptrendScanner:
             all_file = f"{all_stocks_csv_dir}/all_scanned{strategy_suffix}_{timestamp}.csv"
             all_df.to_csv(all_file, index=False)
             logger.info(f"Saved all {len(all_flat_data)} scanned stocks to {all_file}")
+
+    def _prepare_stock_data_for_export(self, stock: Dict) -> Dict:
+        """
+        Helper method to prepare stock data for export (used by both CSV and Excel).
+        Returns a flattened dictionary with sector/industry as first columns.
+        """
+        # Map exchange codes to readable names
+        exchange_name = stock.get('exchange', 'Unknown')
+        if exchange_name == 'XNAS':
+            exchange_display = 'NASDAQ'
+        elif exchange_name == 'XNYS':
+            exchange_display = 'NYSE'
+        else:
+            exchange_display = exchange_name
+
+        early_details = stock.get('early_details', {})
+
+        return {
+            # Sector/Industry first (per user requirement)
+            'sector': stock.get('sector', 'Unknown'),
+            'industry_group': stock.get('industry_group', 'Unknown'),
+            # Basic info
+            'ticker': stock['ticker'],
+            'exchange': exchange_display,
+            'score': stock.get('score', 0),
+            'tier': stock.get('tier', ''),
+            'current_price': stock['current_price'],
+            'volatility_20': stock.get('volatility_20', 0),
+            'volatility_50': stock.get('volatility_50', 0),
+            'shares_outstanding': stock.get('shares_outstanding', 0),
+            'float_shares': stock.get('float_shares', 0),
+            'free_float_pct': stock.get('free_float_pct', 0),
+            'market_cap': stock.get('market_cap', 0),
+            'effective_volume_pct': stock.get('effective_volume_pct', 0),
+            'is_early_uptrend': stock.get('is_early_uptrend', False),
+            'is_established_uptrend': stock.get('is_established_uptrend', False),
+
+            # Score breakdown
+            'trend_strength': stock['score_breakdown']['trend_strength'],
+            'momentum_quality': stock['score_breakdown']['momentum_quality'],
+            'volume_profile': stock['score_breakdown']['volume_profile'],
+            'price_structure': stock['score_breakdown']['price_structure'],
+            'risk_reward': stock['score_breakdown']['risk_reward'],
+            'trend_quality': stock['score_breakdown'].get('trend_quality', 0),
+
+            # Trend quality details
+            'choppiness_index': stock['score_breakdown'].get('details', {}).get('trend_quality', {}).get('choppiness_index', 50.0),
+            'efficiency_ratio': stock['score_breakdown'].get('details', {}).get('trend_quality', {}).get('efficiency_ratio', 0.0),
+
+            # Early uptrend specific indicators
+            'early_score': early_details.get('score', 0),
+            'ma20_cross_recent': early_details.get('ma20_cross_recent', False),
+            'volume_spike': early_details.get('volume_spike', False),
+            'rsi_healthy': early_details.get('rsi_healthy', False),
+            'rsi': early_details.get('rsi', 0),
+            'adx_rising': early_details.get('adx_rising', False),
+            'adx': early_details.get('adx', 0),
+            'macd_cross_recent': early_details.get('macd_cross_recent', False),
+            'breakout': early_details.get('breakout', False),
+        }
+
+    def export_to_excel(self, results: Dict, output_dir: str = './output', strategy_id: str = None):
+        """
+        Export results to Excel workbooks with multiple tabs.
+
+        Creates 3 workbooks (one for each category: all_scanned, early, established).
+        Each workbook contains:
+        - Tab 1: "all" - All stocks sorted by score descending
+        - Tab 2: "top20_per_sector" - Top 20 from each sector (or all if < 20)
+        - Tabs 3-13: One tab per GICS sector with stocks in that sector
+
+        Args:
+            results: Dictionary with scan results
+            output_dir: Base output directory
+            strategy_id: Strategy identifier (e.g., 'S1', 'S12', 'S1-3-5')
+        """
+        import os
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        strategy_suffix = f"_{strategy_id}" if strategy_id else ""
+
+        # Create Excel output directories (same structure as CSV)
+        early_excel_dir = f"{output_dir}/excel/uptrend/early"
+        established_excel_dir = f"{output_dir}/excel/uptrend/established"
+        all_stocks_excel_dir = f"{output_dir}/excel/all_scanned"
+
+        os.makedirs(early_excel_dir, exist_ok=True)
+        os.makedirs(established_excel_dir, exist_ok=True)
+        os.makedirs(all_stocks_excel_dir, exist_ok=True)
+
+        def create_excel_workbook(stocks: List[Dict], output_path: str, workbook_type: str):
+            """
+            Create an Excel workbook with multiple tabs for a list of stocks.
+
+            Args:
+                stocks: List of stock dictionaries
+                output_path: Path to save the Excel file
+                workbook_type: Type identifier for logging ('all_scanned', 'early', 'established')
+            """
+            if not stocks:
+                logger.info(f"No stocks to export for {workbook_type}")
+                return
+
+            # Prepare all stock data
+            flat_data = [self._prepare_stock_data_for_export(stock) for stock in stocks]
+
+            # Create main DataFrame sorted by score descending
+            all_df = pd.DataFrame(flat_data)
+            all_df = all_df.sort_values('score', ascending=False).reset_index(drop=True)
+
+            # Create Excel writer
+            with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
+                # Tab 1: "all" - All stocks sorted by score
+                all_df.to_excel(writer, sheet_name='all', index=False)
+                logger.debug(f"Created 'all' tab with {len(all_df)} stocks")
+
+                # Tab 2: "top20_per_sector" - Top 20 (or all) from each sector
+                top20_rows = []
+                for sector in GICS_SECTORS:
+                    sector_df = all_df[all_df['sector'] == sector].head(20)
+                    if len(sector_df) > 0:
+                        top20_rows.append(sector_df)
+
+                if top20_rows:
+                    top20_df = pd.concat(top20_rows, ignore_index=True)
+                    # Sort by sector first, then by score within sector
+                    top20_df = top20_df.sort_values(['sector', 'score'], ascending=[True, False]).reset_index(drop=True)
+                    top20_df.to_excel(writer, sheet_name='top20_per_sector', index=False)
+                    logger.debug(f"Created 'top20_per_sector' tab with {len(top20_df)} stocks")
+
+                # Tabs 3-13: One tab per GICS sector
+                for sector in GICS_SECTORS:
+                    sector_df = all_df[all_df['sector'] == sector].copy()
+                    if len(sector_df) > 0:
+                        # Excel sheet names have max 31 chars, truncate if needed
+                        sheet_name = sector[:31] if len(sector) > 31 else sector
+                        sector_df.to_excel(writer, sheet_name=sheet_name, index=False)
+                        logger.debug(f"Created '{sheet_name}' tab with {len(sector_df)} stocks")
+
+            logger.info(f"Saved {workbook_type} Excel workbook to {output_path}")
+
+        # Export ALL SCANNED stocks
+        if results.get('all_scanned_stocks'):
+            all_excel_file = f"{all_stocks_excel_dir}/all_scanned{strategy_suffix}_{timestamp}.xlsx"
+            create_excel_workbook(results['all_scanned_stocks'], all_excel_file, 'all_scanned')
+
+        # Export EARLY uptrends
+        if results.get('early_uptrends'):
+            early_excel_file = f"{early_excel_dir}/early_uptrends{strategy_suffix}_{timestamp}.xlsx"
+            create_excel_workbook(results['early_uptrends'], early_excel_file, 'early_uptrends')
+
+        # Export ESTABLISHED uptrends
+        if results.get('established_uptrends'):
+            established_excel_file = f"{established_excel_dir}/established_uptrends{strategy_suffix}_{timestamp}.xlsx"
+            create_excel_workbook(results['established_uptrends'], established_excel_file, 'established_uptrends')
 
     def plot_stock_chart(self, ticker: str, output_dir: str = './output/charts', strategy_id: str = None, rank: int = None) -> Optional[str]:
         """
@@ -2345,3 +2791,89 @@ class UptrendScanner:
 
         logger.info(f"Generated {len(chart_files)} charts in {output_dir}")
         return chart_files
+
+    def plot_watchlist_by_sector(self, stocks: List[Dict], output_dir: str = './output/charts',
+                                  strategy_id: str = None, charts_per_sector: int = 20,
+                                  include_all_folder: bool = True, max_all_charts: int = None) -> Dict[str, List[str]]:
+        """
+        Generate charts organized by GICS sector into subfolders.
+
+        Creates sector subfolders with top N stocks per sector, plus optionally
+        an 'all' folder with top stocks overall.
+
+        Args:
+            stocks: List of stock dictionaries (from scan results)
+            output_dir: Base directory to save charts (sector folders created inside)
+            strategy_id: Strategy identifier (e.g., 'S1', 'S2')
+            charts_per_sector: Number of top charts per sector (e.g., ZZ=20, YY=10, XX=10)
+            include_all_folder: If True, create 'all' folder with top stocks overall
+            max_all_charts: Max charts in 'all' folder (defaults to NUM_CHARTS_TO_PLOT)
+
+        Returns:
+            Dict mapping folder names to list of chart file paths
+        """
+        import os
+        import config
+        from collections import defaultdict
+
+        if max_all_charts is None:
+            max_all_charts = config.NUM_CHARTS_TO_PLOT
+
+        chart_files_by_folder = defaultdict(list)
+
+        # Sort stocks by score descending
+        sorted_stocks = sorted(stocks, key=lambda x: x.get('score', 0), reverse=True)
+
+        # Group stocks by sector
+        stocks_by_sector = defaultdict(list)
+        for stock in sorted_stocks:
+            sector = stock.get('sector', 'Unknown')
+            stocks_by_sector[sector].append(stock)
+
+        # 1. Generate charts for 'all' folder (top stocks overall)
+        if include_all_folder:
+            all_dir = f"{output_dir}/all"
+            os.makedirs(all_dir, exist_ok=True)
+
+            all_stocks_to_plot = sorted_stocks[:max_all_charts]
+            logger.info(f"Generating {len(all_stocks_to_plot)} charts in 'all' folder...")
+
+            for i, stock in enumerate(all_stocks_to_plot, 1):
+                ticker = stock['ticker']
+                logger.info(f"[all {i}/{len(all_stocks_to_plot)}] Generating chart: {ticker}")
+
+                chart_file = self.plot_stock_chart(ticker, all_dir, strategy_id, rank=i)
+                if chart_file:
+                    chart_files_by_folder['all'].append(chart_file)
+
+        # 2. Generate charts for each sector folder
+        for sector in GICS_SECTORS:
+            sector_stocks = stocks_by_sector.get(sector, [])
+            if not sector_stocks:
+                continue
+
+            # Take top N stocks for this sector
+            sector_stocks_to_plot = sector_stocks[:charts_per_sector]
+
+            # Create sector folder
+            sector_dir = f"{output_dir}/{sector}"
+            os.makedirs(sector_dir, exist_ok=True)
+
+            logger.info(f"Generating {len(sector_stocks_to_plot)} charts in '{sector}' folder...")
+
+            for i, stock in enumerate(sector_stocks_to_plot, 1):
+                ticker = stock['ticker']
+                logger.info(f"[{sector[:15]} {i}/{len(sector_stocks_to_plot)}] Generating chart: {ticker}")
+
+                chart_file = self.plot_stock_chart(ticker, sector_dir, strategy_id, rank=i)
+                if chart_file:
+                    chart_files_by_folder[sector].append(chart_file)
+
+        # Log summary
+        total_charts = sum(len(files) for files in chart_files_by_folder.values())
+        logger.info(f"Generated {total_charts} total charts across {len(chart_files_by_folder)} folders")
+
+        for folder, files in chart_files_by_folder.items():
+            logger.debug(f"  {folder}: {len(files)} charts")
+
+        return dict(chart_files_by_folder)

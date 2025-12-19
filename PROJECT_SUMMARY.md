@@ -328,7 +328,7 @@ pip install -r requirements.txt
 ### 4. Run Your First Scan (1 minute)
 ```bash
 # Quick test with 50 stocks
-python example_usage.py 1
+python3 example_usage.py 1
 ```
 
 ### 5. Review Results
@@ -366,13 +366,13 @@ output/
 ### Command-Line Usage
 ```bash
 # Strategy 1: Quick test (50 stocks)
-python example_usage.py 1
+python3 example_usage.py 1
 
 # Strategy 2: Full market scan
-python example_usage.py 2
+python3 example_usage.py 2
 
 # Strategy 9: Curated watchlist (top 15)
-python example_usage.py 9
+python3 example_usage.py 9
 ```
 
 ### Programmatic Usage
