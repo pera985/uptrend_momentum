@@ -1776,6 +1776,9 @@ class UptrendScanner:
         float_shares = ticker_details.get('float_shares', 0)
         effective_volume_pct = (avg_volume / float_shares * 100) if float_shares > 0 else 0
 
+        # Get latest row for technical indicators
+        latest = df.iloc[-1]
+
         result = {
             'ticker': ticker,
             'exchange': exchange,  # Add exchange info (XNAS=NASDAQ, XNYS=NYSE)
@@ -1783,9 +1786,39 @@ class UptrendScanner:
             'industry_group': ticker_details.get('industry_group', 'Unknown'),
             'is_early_uptrend': is_early,
             'is_established_uptrend': is_established,
-            'current_price': df.iloc[-1]['close'],
-            'volatility_20': df.iloc[-1]['volatility_20'],
-            'volatility_50': df.iloc[-1]['volatility_50'],
+            'current_price': latest['close'],
+
+            # Technical Indicators - Moving Averages
+            'ma20': latest['ma_20'],
+            'ma50': latest['ma_50'],
+            'ma200': latest['ma_200'],
+
+            # Technical Indicators - Momentum
+            'rsi': latest['rsi'],
+            'adx': latest['adx'],
+            'macd': latest['macd'],
+            'macd_signal': latest['macd_signal'],
+            'macd_histogram': latest['macd_histogram'],
+
+            # Technical Indicators - Bollinger Bands
+            'bb_upper': latest['bb_upper'],
+            'bb_middle': latest['bb_middle'],
+            'bb_lower': latest['bb_lower'],
+
+            # Price relative to MAs (%)
+            'pct_from_ma20': ((latest['close'] - latest['ma_20']) / latest['ma_20'] * 100) if latest['ma_20'] > 0 else 0,
+            'pct_from_ma50': ((latest['close'] - latest['ma_50']) / latest['ma_50'] * 100) if latest['ma_50'] > 0 else 0,
+            'pct_from_ma200': ((latest['close'] - latest['ma_200']) / latest['ma_200'] * 100) if latest['ma_200'] > 0 else 0,
+
+            # Volume data
+            'volume': latest['volume'],
+            'avg_volume_50': avg_volume,
+
+            # Volatility
+            'volatility_20': latest['volatility_20'],
+            'volatility_50': latest['volatility_50'],
+
+            # Company info
             'shares_outstanding': ticker_details.get('shares_outstanding', 0),
             'float_shares': ticker_details.get('float_shares', 0),
             'free_float_pct': ticker_details.get('free_float_pct', 0),
@@ -1793,6 +1826,8 @@ class UptrendScanner:
             'effective_volume_pct': effective_volume_pct,
             'sic_code': ticker_details.get('sic_code', ''),
             'sic_description': ticker_details.get('sic_description', ''),
+
+            # Uptrend classification details
             'early_details': early_details,
             'established_details': established_details
         }
@@ -2202,25 +2237,63 @@ class UptrendScanner:
 
         early_details = stock.get('early_details', {})
 
+        # Get established details for days_in_uptrend
+        established_details = stock.get('established_details', {})
+
         return {
             # Ticker first (per user requirement), then Sector/Industry
             'ticker': stock['ticker'],
             'sector': stock.get('sector', 'Unknown'),
             'industry_group': stock.get('industry_group', 'Unknown'),
+
             # Basic info
             'exchange': exchange_display,
             'score': stock.get('score', 0),
             'tier': stock.get('tier', ''),
-            'current_price': stock['current_price'],
+            'current_price': stock.get('current_price', 0),
+
+            # Technical Indicators - Moving Averages
+            'ma20': stock.get('ma20', 0),
+            'ma50': stock.get('ma50', 0),
+            'ma200': stock.get('ma200', 0),
+
+            # Price relative to MAs (%)
+            'pct_from_ma20': stock.get('pct_from_ma20', 0),
+            'pct_from_ma50': stock.get('pct_from_ma50', 0),
+            'pct_from_ma200': stock.get('pct_from_ma200', 0),
+
+            # Technical Indicators - Momentum
+            'rsi': stock.get('rsi', early_details.get('rsi', 0)),
+            'adx': stock.get('adx', early_details.get('adx', 0)),
+            'macd': stock.get('macd', 0),
+            'macd_signal': stock.get('macd_signal', 0),
+            'macd_histogram': stock.get('macd_histogram', 0),
+
+            # Technical Indicators - Bollinger Bands
+            'bb_upper': stock.get('bb_upper', 0),
+            'bb_middle': stock.get('bb_middle', 0),
+            'bb_lower': stock.get('bb_lower', 0),
+
+            # Volume data
+            'volume': stock.get('volume', 0),
+            'avg_volume_50': stock.get('avg_volume_50', 0),
+
+            # Volatility
             'volatility_20': stock.get('volatility_20', 0),
             'volatility_50': stock.get('volatility_50', 0),
+
+            # Company info
             'shares_outstanding': stock.get('shares_outstanding', 0),
             'float_shares': stock.get('float_shares', 0),
             'free_float_pct': stock.get('free_float_pct', 0),
             'market_cap': stock.get('market_cap', 0),
             'effective_volume_pct': stock.get('effective_volume_pct', 0),
+
+            # Uptrend classification
             'is_early_uptrend': stock.get('is_early_uptrend', False),
             'is_established_uptrend': stock.get('is_established_uptrend', False),
+            'days_in_uptrend': established_details.get('days_in_uptrend', 0),
+            'mas_stacked': established_details.get('mas_stacked', False),
 
             # Score breakdown
             'trend_strength': stock['score_breakdown']['trend_strength'],
@@ -2239,9 +2312,7 @@ class UptrendScanner:
             'ma20_cross_recent': early_details.get('ma20_cross_recent', False),
             'volume_spike': early_details.get('volume_spike', False),
             'rsi_healthy': early_details.get('rsi_healthy', False),
-            'rsi': early_details.get('rsi', 0),
             'adx_rising': early_details.get('adx_rising', False),
-            'adx': early_details.get('adx', 0),
             'macd_cross_recent': early_details.get('macd_cross_recent', False),
             'breakout': early_details.get('breakout', False),
         }
